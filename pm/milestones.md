@@ -2,8 +2,8 @@
 
 | Phase | Deliverable | Planned | Actual | Notes |
 |---|---|---|---|---|
-| 0 | Scaffold, CI, charter, risk register | 2026-10-19 | | |
-| 1 | Data spike: verify series IDs, holiday schedule, PortWatch | 2026-10-22 | | |
+| 0 | Scaffold, CI, charter, risk register | 2026-10-19 | 2026-10-19 | CI not yet run on GitHub (repo pending) |
+| 1 | Data spike: verify series IDs, holiday schedule, PortWatch | 2026-10-22 | 2026-10-19 | See ADR 0002; residual finding |
 | 2 | Ingest, DuckDB store, vintages, fallback, validation | 2026-10-27 | | |
 | 3 | Calendar/deadline logic, point-in-time features, leakage tests | 2026-10-31 | | |
 | 4 | Baselines, walk-forward backtest, metrics report | 2026-11-04 | | |

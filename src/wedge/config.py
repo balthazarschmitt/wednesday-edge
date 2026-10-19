@@ -11,16 +11,28 @@ LEDGER_DIR = REPO_ROOT / "ledger"
 
 EIA_API_BASE = "https://api.eia.gov/v2"
 
-# Weekly stock levels (thousand barrels). Confirmed on EIA dnav pages, 2026-10-19.
-# Flow components (production, imports, exports, refinery input, adjustment) and Cushing
-# are confirmed in the Phase 1 data spike and recorded in pm/adr/.
+# All series live on one route; confirmed in the Phase 1 data spike (pm/adr/0002-data-spike.md).
+EIA_WEEKLY_ROUTE = "petroleum/sum/sndw"
+
+# Weekly stock levels (thousand barrels).
 STOCK_SERIES = {
     "crude_commercial": "WCESTUS1",
     "crude_spr": "WCSSTUS1",
+    "cushing": "W_EPC0_SAX_YCUOK_MBBL",
     "gasoline": "WGTSTUS1",
     "distillate": "WDISTUS1",
     "jet": "WKJSTUS1",
     "propane": "WPRSTUS1",
+}
+
+# Crude balance flows (thousand barrels per day) and refinery utilization (%).
+# EIA publishes no crude adjustment series; it is derived as the balance residual.
+FLOW_SERIES = {
+    "production": "WCRFPUS2",
+    "imports_commercial": "WCEIMUS2",
+    "exports": "WCREXUS2",
+    "refinery_input": "WCRRIUS2",
+    "refinery_utilization": "WPULEUS3",
 }
 
 PRIMARY_TARGET = "crude_commercial"

@@ -5,11 +5,12 @@ Probability (P) and Impact (I) are each scored 1–3. Review this register weekl
 | ID | Risk | P | I | Response | Status |
 |---|---|---|---|---|---|
 | R1 | A GitHub Actions cron is delayed or skipped, so a forecast misses the deadline | 2 | 3 | Run three staggered crons with idempotent jobs, plus a manual `workflow_dispatch` or local fallback | Open |
-| R2 | The EIA API is down or the key fails | 2 | 3 | Retry with backoff, fall back to the dnav XLS, then to the cached vintage, with a staleness flag | Open |
+| R2 | The EIA API is down or the key fails | 3 | 3 | Retry with backoff, fall back to the dnav XLS, then to the cached vintage, with a staleness flag. **Occurred 2026-10-19:** one 60s timeout, and latency climbed to 44s. Raised P to 3; batch series into one request | Open |
 | R3 | A holiday shifts the release, and the scorer or deadline logic breaks | 3 | 2 | Calendar logic never assumes Wednesday; the scorer polls until data appears; holiday cases are tested | Open |
 | R4 | Look-ahead leakage inflates the backtest | 2 | 3 | One `as_of` path for building features, plus leakage tests in CI | Open |
 | R5 | The model fails to beat the seasonal baseline | 2 | 2 | Fix the selection rule in advance, launch the best model anyway, and write up the result honestly | Open |
 | R6 | Consensus data is unavailable for some weeks | 3 | 1 | Log it by hand through the CLI; report comparisons only on weeks with both values | Open |
 | R7 | The weekly routine gets skipped (owner fatigue) | 2 | 2 | The pipeline runs fully without manual input, and manual steps stay under 15 minutes | Open |
-| R8 | EIA series IDs or facets differ from assumptions | 2 | 2 | Phase 1 data spike, with findings recorded in an ADR | Open |
+| R8 | EIA series IDs or facets differ from assumptions | 2 | 2 | Phase 1 data spike, with findings recorded in an ADR | Closed: all IDs confirmed; adjustment is derived (ADR 0002) |
+| R10 | The derived adjustment residual (σ ≈ 4.2 mb/wk) dominates forecast error | 3 | 2 | Model the residual explicitly, publish intervals, and explain it on the methodology page | Open |
 | R9 | Scheduled workflows are disabled after 60 days without commits | 1 | 3 | Weekly ledger commits keep the repo active | Open |
