@@ -1,0 +1,6 @@
+# LF everywhere so ledger file hashes are identical on Windows and in CI.
+* text=auto eol=lf
+*.parquet binary
+*.duckdb binary
+*.xls binary
+*.xlsx binary
