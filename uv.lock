@@ -494,6 +494,7 @@ dependencies = [
     { name = "pandas" },
     { name = "pyarrow" },
     { name = "typer" },
+    { name = "tzdata" },
     { name = "xlrd" },
 ]
 
@@ -510,6 +511,7 @@ requires-dist = [
     { name = "pandas", specifier = ">=2.2" },
     { name = "pyarrow", specifier = ">=17" },
     { name = "typer", specifier = ">=0.12" },
+    { name = "tzdata", specifier = ">=2026.5" },
     { name = "xlrd", specifier = ">=2.0" },
 ]
 
