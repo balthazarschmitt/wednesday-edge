@@ -10,6 +10,10 @@ DB_PATH = DATA_DIR / "wedge.duckdb"
 LEDGER_DIR = REPO_ROOT / "ledger"
 
 EIA_API_BASE = "https://api.eia.gov/v2"
+# Fallback when the API is down: one legacy XLS workbook per series.
+EIA_XLS_URL = "https://www.eia.gov/dnav/pet/hist_xls/{series_id}w.xls"
+# EIA latency reached 44s in the Phase 1 spike; one call timed out at 60s.
+HTTP_TIMEOUT_S = 120.0
 
 # All series live on one route; confirmed in the Phase 1 data spike (pm/adr/0002-data-spike.md).
 EIA_WEEKLY_ROUTE = "petroleum/sum/sndw"
@@ -35,7 +39,22 @@ FLOW_SERIES = {
     "refinery_utilization": "WPULEUS3",
 }
 
+ALL_SERIES = {**STOCK_SERIES, **FLOW_SERIES}
+SERIES_NAMES = {sid: name for name, sid in ALL_SERIES.items()}
+
 PRIMARY_TARGET = "crude_commercial"
+
+
+def load_dotenv(path: Path = REPO_ROOT / ".env") -> None:
+    """Load KEY=VALUE lines from a local .env without overriding real environment variables."""
+    if not path.exists():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        name, value = line.split("=", 1)
+        os.environ.setdefault(name.strip(), value.strip())
 
 
 def eia_api_key() -> str:

@@ -12,5 +12,7 @@ Probability (P) and Impact (I) are each scored 1–3. Review this register weekl
 | R6 | Consensus data is unavailable for some weeks | 3 | 1 | Log it by hand through the CLI; report comparisons only on weeks with both values | Open |
 | R7 | The weekly routine gets skipped (owner fatigue) | 2 | 2 | The pipeline runs fully without manual input, and manual steps stay under 15 minutes | Open |
 | R8 | EIA series IDs or facets differ from assumptions | 2 | 2 | Phase 1 data spike, with findings recorded in an ADR | Closed: all IDs confirmed; adjustment is derived (ADR 0002) |
+| R11 | The API key leaks through logs or committed files | 2 | 3 | httpx logging is held at WARNING, the code refuses to write vintages containing the key, regression tests cover both, and Actions secrets are masked. **Occurred 2026-10-19 (local terminal only)** | Mitigated |
+| R12 | Unstable EIA pagination silently drops or repeats rows | 2 | 3 | A tiebreaker sort, a row-count check against `total`, and duplicate validation. **Occurred 2026-10-19; caught by validation** | Mitigated |
 | R10 | The derived adjustment residual (σ ≈ 4.2 mb/wk) dominates forecast error | 3 | 2 | Model the residual explicitly, publish intervals, and explain it on the methodology page | Open |
 | R9 | Scheduled workflows are disabled after 60 days without commits | 1 | 3 | Weekly ledger commits keep the repo active | Open |
