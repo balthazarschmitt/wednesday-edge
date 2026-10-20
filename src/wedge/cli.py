@@ -186,6 +186,15 @@ def override(
     typer.echo(f"Logged {path.relative_to(config.REPO_ROOT)}")
 
 
+@app.command("site-export")
+def site_export() -> None:
+    """Write site/data/site.json from the ledger, data, and backtest (shadow unless WEDGE_LIVE)."""
+    from wedge import site_export as se
+
+    path = se.export()
+    typer.echo(f"Wrote {path.relative_to(config.REPO_ROOT)} ({path.stat().st_size // 1024} KB)")
+
+
 @app.command("ledger-check")
 def ledger_check(
     base: str = typer.Option(None, help="Base commit (default: empty tree = whole history)."),

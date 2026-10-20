@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Methodology · Wednesday Edge</title>
+  <meta name="description" content="How Wednesday Edge forecasts the weekly change in US commercial crude inventories, and the rules that keep its track record honest.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%230f5d75'/><path d='M3 11l3-4 3 2 4-5' stroke='white' stroke-width='1.6' fill='none'/></svg>">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="./">Wednesday <span>Edge</span></a>
+      <nav>
+        <a href="./">Forecast</a>
+        <a href="./#record">Track record</a>
+        <a href="methodology.html" aria-current="page">Methodology</a>
+        <a href="https://github.com/balthazarschmitt/wednesday-edge">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap prose">
+    <h1>Methodology</h1>
+    <p class="sub">What is forecast, how, and the rules that stop the track record from being edited after the fact. Everything here can be checked against the <a href="https://github.com/balthazarschmitt/wednesday-edge">repository</a>.</p>
+
+    <h2>What is forecast</h2>
+    <p>The weekly change in US commercial crude oil stocks, excluding the Strategic Petroleum Reserve (EIA series <code>WCESTUS1</code>), in million barrels (mb). EIA publishes it in the Weekly Petroleum Status Report, normally Wednesday at 10:30 ET. When a federal holiday falls Monday to Wednesday, the release moves to Thursday at 12:00 ET.</p>
+    <p>Each forecast gives a point estimate, an 80% range (P10 to P90), and the probability of a build.</p>
+
+    <h2>Timing rules</h2>
+    <ul>
+      <li>The forecast job runs Tuesday evening ET, after the American Petroleum Institute's private survey is out. It retries on several staggered schedules.</li>
+      <li>The model sees data as of Tuesday 6 pm ET: only weeks EIA had already released, from the data files fetched by then.</li>
+      <li>The deadline is 15 minutes before the EIA release. If no forecast exists by then, the week is recorded as <strong>missed</strong> and stays on the record. Nothing is backfilled.</li>
+      <li>A forecast committed at or after the release is scored as <strong>invalid</strong>, not as a forecast.</li>
+    </ul>
+
+    <h2>The ledger</h2>
+    <p>Each forecast is a JSON file in <a href="https://github.com/balthazarschmitt/wednesday-edge/tree/main/ledger"><code>ledger/</code></a>, committed to git before the deadline. The commit time and the file's <code>created_at</code> field show when it was made. The file also records the model version, the code commit, a hash of the input data, and the forecasts of every benchmark model.</p>
+    <p>The ledger is append-only. A CI check fails any commit that modifies or deletes an existing ledger file, so misses and bad weeks cannot be quietly removed. Scores are written once, in separate files.</p>
+
+    <h2>The model</h2>
+    <p>Crude stocks change by what flows in minus what flows out:</p>
+    <pre>Δ stocks = 7 × (production + imports − exports − refinery input) + adjustment</pre>
+    <p>EIA publishes each flow as a daily average, hence the factor of 7. The "adjustment" is EIA's balancing item for barrels it cannot account for. It is large, noisy, and the main reason weekly forecasts miss.</p>
+    <p>The launch model, <code>flows-v1</code>, is a ridge regression on 15 features built from that balance. They include last week's implied flow balance, how persistent the adjustment has been, flow momentum, Strategic Petroleum Reserve changes, stocks against their 5-year average, and the 5-year seasonal change for the same week. It trains on the trailing 10 years and refits every week. Its 80% range and build probability come from its own errors over the previous three years.</p>
+    <p>Two other models run alongside it in shadow and are logged in every ledger file: a LightGBM quantile model and an equal-weight ensemble. They are not part of the headline record.</p>
+
+    <h2>How the model was chosen</h2>
+    <p>The selection rule was committed before any candidate was scored on the selection window (<a href="https://github.com/balthazarschmitt/wednesday-edge/blob/main/pm/adr/0005-baselines-and-selection-rule.md">ADR 0005</a>). On the 2022–2025 walk-forward test, a candidate had to:</p>
+    <ol>
+      <li>have a lower mean absolute error than the best naive baseline;</li>
+      <li>have between 72% and 88% of outcomes inside its 80% range;</li>
+      <li>have a build-probability Brier score no worse than that baseline's.</li>
+    </ol>
+    <p>Among the candidates that passed, the simplest one within 2% of the best error wins. Model settings were tuned only on 2015–2021 data and frozen in a commit before the selection run. The run was done once (<a href="https://github.com/balthazarschmitt/wednesday-edge/blob/main/pm/adr/0006-model-selection.md">ADR 0006</a>, <a href="https://github.com/balthazarschmitt/wednesday-edge/blob/main/reports/backtest/all.md">full report</a>).</p>
+    <p>Result: "zero change" was the toughest baseline in 2022–2025, at 4.04 mb average miss. <code>flows</code> scored 3.92 mb with 79.8% coverage. The two other candidates scored slightly better, but they fell within the 2% tolerance, so the simpler model was chosen.</p>
+
+    <h2>How it is scored</h2>
+    <ul>
+      <li><strong>Average miss</strong> (mean absolute error) in mb against EIA's first-published figure.</li>
+      <li><strong>Direction</strong>: the build probability was 50% or more and stocks rose, or it was below 50% and stocks fell.</li>
+      <li><strong>Range</strong>: whether the actual landed inside the 80% range. Over time this should happen about 80% of the time; much more means the range is too wide.</li>
+      <li><strong>Benchmarks</strong>: zero change and the 5-year seasonal change are scored every week. Analyst consensus and the API print are logged by hand with a source link when available, and compared only on the weeks where they exist.</li>
+    </ul>
+
+    <h2>Data</h2>
+    <p>All inputs are public weekly EIA series, pulled through the EIA API with a fallback to EIA's spreadsheet downloads. Every pull is saved in the repository as a dated file, so any past forecast can be rebuilt from exactly the data it saw.</p>
+
+    <h2>Limitations</h2>
+    <ul>
+      <li>The edge is small. In the backtest the model beat the best naive baseline by about 3% on 2022–2025 and the seasonal baseline by about 10% over 2015–2025. A few months of live weeks cannot tell skill from luck, so read the live record with that in mind.</li>
+      <li>The model uses only EIA data. It does not see tanker tracking, refinery outages or the API print, which professional forecasters use.</li>
+      <li>Backtests use EIA's latest data; live forecasts use what was published at the time. Revisions to weekly data are small, but live errors may be slightly larger.</li>
+    </ul>
+
+    <h2>Built with AI assistance</h2>
+    <p>The code was written with Claude Code (Anthropic) as a pair programmer. The author directed the design and runs the weekly operation; decisions are documented in the <a href="https://github.com/balthazarschmitt/wednesday-edge/tree/main/pm">project notes</a>. No forecast is made by a language model.</p>
+  </main>
+
+  <footer>
+    <div class="wrap">Data: U.S. Energy Information Administration. Not investment advice.</div>
+  </footer>
+</body>
+</html>

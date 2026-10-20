@@ -1,0 +1,54 @@
+name: Pages
+
+# Rebuilds site/data/site.json and deploys the static site. Bot pushes from the forecast and
+# score jobs do not trigger `push` workflows, so this also runs after those jobs finish.
+on:
+  push:
+    branches: [main]
+  workflow_run:
+    workflows: [Forecast, Score]
+    types: [completed]
+  schedule:
+    - cron: "17 11 * * *" # daily refresh keeps the health badge and countdown current
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main # workflow_run would otherwise check out the commit before the bot's push
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - run: uv run wedge rebuild-db
+      - name: Export site data
+        env:
+          WEDGE_LIVE: ${{ vars.WEDGE_LIVE }}
+        run: uv run wedge site-export
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

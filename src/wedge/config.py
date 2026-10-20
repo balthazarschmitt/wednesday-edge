@@ -8,6 +8,9 @@ DATA_DIR = REPO_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 DB_PATH = DATA_DIR / "wedge.duckdb"
 LEDGER_DIR = REPO_ROOT / "ledger"
+SITE_DIR = REPO_ROOT / "site"
+REPORT_DIR = REPO_ROOT / "reports"
+REPO_URL = "https://github.com/balthazarschmitt/wednesday-edge"
 
 EIA_API_BASE = "https://api.eia.gov/v2"
 # Fallback when the API is down: one legacy XLS workbook per series.

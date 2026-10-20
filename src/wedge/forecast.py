@@ -61,8 +61,8 @@ def predict_all(wide: pd.DataFrame, as_of: datetime, target: date, models=MODELS
 
 
 def _git_sha() -> str:
-    if sha := os.environ.get("GITHUB_SHA"):
-        return sha
+    """The checked-out commit. GITHUB_SHA is only a fallback: on `workflow_run` it names the
+    triggering commit, not the one checked out."""
     try:
         return subprocess.run(
             ["git", "rev-parse", "HEAD"],
@@ -72,7 +72,7 @@ def _git_sha() -> str:
             check=True,
         ).stdout.strip()
     except (OSError, subprocess.CalledProcessError):
-        return "unknown"
+        return os.environ.get("GITHUB_SHA", "unknown")
 
 
 def _input_hash(wide: pd.DataFrame, as_of: datetime) -> str:

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wednesday Edge</title>
+  <meta name="description" content="A live, timestamped forecast of the weekly change in US commercial crude oil inventories, published before every EIA release and scored in public.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><rect width='16' height='16' rx='3' fill='%230f5d75'/><path d='M3 11l3-4 3 2 4-5' stroke='white' stroke-width='1.6' fill='none'/></svg>">
+</head>
+<body>
+  <header class="site">
+    <div class="wrap">
+      <a class="brand" href="./">Wednesday <span>Edge</span></a>
+      <nav>
+        <a href="./" aria-current="page">Forecast</a>
+        <a href="#record">Track record</a>
+        <a href="methodology.html">Methodology</a>
+        <a id="repo-link" href="https://github.com/balthazarschmitt/wednesday-edge">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <div id="banner" class="banner" hidden><div class="wrap" id="banner-text"></div></div>
+
+  <main class="wrap">
+    <section style="margin-top:0">
+      <h1>US crude inventories, forecast before the EIA print</h1>
+      <p class="sub">Each week this model forecasts the change in US commercial crude oil stocks before the EIA Weekly Petroleum Status Report comes out. Every forecast is committed to git before the release, and every miss stays on the record.</p>
+      <div class="hero">
+        <div class="card" id="forecast-card"><p class="empty">Loading…</p></div>
+        <div class="card chart">
+          <div class="eyebrow">Weekly change, last 52 weeks (mb)</div>
+          <div id="recent-chart"></div>
+          <div class="legend">
+            <span><i style="background:var(--build)"></i>Build</span>
+            <span><i style="background:var(--draw)"></i>Draw</span>
+            <span><i style="background:var(--accent)"></i>Forecast and 80% range</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="record">
+      <h2>Track record</h2>
+      <p class="sub" id="record-sub">Scored automatically once EIA publishes. Each row links to the ledger file and its commit history.</p>
+      <div class="stats" id="scoreboard"></div>
+      <div class="card table-scroll" style="margin-top:12px;padding:0" id="benchmarks"></div>
+      <div class="card table-scroll" style="margin-top:12px;padding:0" id="weeks"></div>
+    </section>
+
+    <section id="backtest">
+      <h2>Backtest</h2>
+      <p class="sub" id="backtest-sub"></p>
+      <div class="card chart">
+        <div class="eyebrow">Rolling 52-week average miss (mb). Lower is better.</div>
+        <div id="rolling-chart"></div>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>Wednesday Edge (flows)</span>
+          <span><i style="background:var(--draw)"></i>Zero change</span>
+          <span><i style="background:var(--muted)"></i>5-year seasonal</span>
+        </div>
+      </div>
+      <div class="card table-scroll" style="margin-top:12px;padding:0" id="backtest-table"></div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap" id="footer">Data: U.S. Energy Information Administration. Not investment advice.</div>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>
