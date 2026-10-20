@@ -30,7 +30,11 @@ class EmpiricalIntervals:
     def point(self, X: pd.DataFrame) -> pd.Series:
         raise NotImplementedError
 
+    def fit_point(self, X: pd.DataFrame, y: pd.Series) -> None:
+        """Fit the point forecast; baselines have nothing to fit."""
+
     def fit(self, X: pd.DataFrame, y: pd.Series) -> None:
+        self.fit_point(X, y)
         errors = (y - self.point(X)).dropna().sort_index().tail(self.window)
         if len(errors) < self.min_history:
             raise InsufficientHistory(f"{len(errors)} usable weeks < {self.min_history}")

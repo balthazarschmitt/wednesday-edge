@@ -58,6 +58,7 @@ def _derive(known: pd.DataFrame) -> pd.DataFrame:
         d["production"] + d["imports_commercial"] - d["exports"] - d["refinery_input"]
     )
     d["residual"] = d["d_stocks"] - d["implied"]
+    d["d_spr"] = d["crude_spr"].diff()
     return d
 
 
@@ -111,6 +112,10 @@ def build(wide: pd.DataFrame, as_of: datetime, target: date | None = None) -> pd
     for lag in range(1, 5):
         f[f"d_stocks_lag{lag}"] = at("d_stocks", lag)
     f["implied_lag1"] = at("implied", 1)
+    f["implied_mean4"] = trailing_mean("implied", 4)
+    # SPR releases and exchanges move barrels into commercial stocks (ADR 0005).
+    f["spr_chg1"] = at("d_spr", 1)
+    f["spr_chg_mean4"] = trailing_mean("d_spr", 4)
     f["residual_lag1"] = at("residual", 1)
     f["residual_mean4"] = trailing_mean("residual", 4)
     f["residual_mean13"] = trailing_mean("residual", 13)

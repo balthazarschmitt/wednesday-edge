@@ -14,9 +14,15 @@ import pandas as pd
 
 from wedge import config, features, metrics, releases
 from wedge.models import PRED_COLUMNS, Model
+from wedge.models.baselines import BASELINES
+from wedge.models.ensemble import EnsembleModel
+from wedge.models.flows import FlowsModel
+from wedge.models.gbm import GBMModel
 
 REFERENCE = "seasonal_5y"
-WARMUP_YEARS = 6  # features and errors need history before the first test week
+HISTORY_START = date(1995, 1, 6)  # exports (1991) and utilization (1990) are weekly by then
+CANDIDATES = {"flows": FlowsModel, "gbm": GBMModel, "ensemble": EnsembleModel}
+MODEL_SETS = {"baselines": BASELINES, "candidates": CANDIDATES, "all": BASELINES | CANDIDATES}
 REPORT_DIR = config.REPO_ROOT / "reports" / "backtest"
 
 
@@ -38,9 +44,12 @@ def walk_forward(
     X: pd.DataFrame,
     y: pd.Series,
     test_targets: list[date],
-    refit_every: int = 1,
+    refit_every: int | None = None,
 ) -> pd.DataFrame:
-    """Predictions for each test target; refit every `refit_every` test weeks."""
+    """Predictions for each test target, refitting every `refit_every` test weeks (default:
+    the model's own `refit_every`, else weekly)."""
+    if refit_every is None:
+        refit_every = getattr(factory(), "refit_every", 1)
     released = pd.Series([releases.release_time(t) for t in X.index], index=X.index)
     rows = []
     model = None
@@ -89,10 +98,11 @@ def run(
     start: date,
     end: date,
     models: dict[str, Callable[[], Model]],
-    refit_every: int = 1,
+    refit_every: int | None = None,
+    history_start: date = HISTORY_START,
 ) -> BacktestResult:
     test = fridays(start, end)
-    history = fridays(date(start.year - WARMUP_YEARS, 1, 1), end)
+    history = fridays(history_start, end)
     history = [t for t in history if t in wide.index]
     X, y = dataset(wide, history)
     preds = {
@@ -116,7 +126,9 @@ def _fmt(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def render_markdown(result: BacktestResult, start: date, end: date, title: str) -> str:
+def render_markdown(
+    result: BacktestResult, start: date, end: date, title: str, extra: str = ""
+) -> str:
     sel_start = date(max(start.year, 2022), 1, 1)
     lines = [
         f"# {title}",
@@ -139,13 +151,17 @@ def render_markdown(result: BacktestResult, start: date, end: date, title: str) 
         (result.mae_by_year() / 1000).round(2).to_markdown(),
         "",
     ]
+    if extra:
+        lines += [extra, ""]
     return "\n".join(lines)
 
 
-def write_report(result: BacktestResult, name: str, start: date, end: date, title: str) -> Path:
+def write_report(
+    result: BacktestResult, name: str, start: date, end: date, title: str, extra: str = ""
+) -> Path:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     md = REPORT_DIR / f"{name}.md"
-    md.write_text(render_markdown(result, start, end, title), encoding="utf-8", newline="\n")
+    md.write_text(render_markdown(result, start, end, title, extra), encoding="utf-8", newline="\n")
     preds = pd.concat(result.predictions, names=["model"]).reset_index()
     preds = preds.merge(result.actuals.reset_index().rename(columns={"index": "target"}))
     preds.round({c: 1 for c in PRED_COLUMNS if c != "p_build"} | {"p_build": 4}).to_csv(
