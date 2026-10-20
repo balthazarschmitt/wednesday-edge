@@ -4,7 +4,7 @@ Probability (P) and Impact (I) are each scored 1–3. Review this register weekl
 
 | ID | Risk | P | I | Response | Status |
 |---|---|---|---|---|---|
-| R1 | A GitHub Actions cron is delayed or skipped, so a forecast misses the deadline | 2 | 3 | Run three staggered crons with idempotent jobs, plus a manual `workflow_dispatch` or local fallback | Open |
+| R1 | A GitHub Actions cron is delayed or skipped, so a forecast misses the deadline | 2 | 3 | Five staggered crons (Tue x3, Wed, Thu), idempotent jobs, a forecast window so early runs can't lock in, and a manual `workflow_dispatch` or local fallback. Misses are recorded and the run fails, which triggers an email | Mitigated |
 | R2 | The EIA API is down or the key fails | 3 | 3 | Retry with backoff, fall back to the dnav XLS, then to the cached vintage, with a staleness flag. **Occurred 2026-10-19:** one 60s timeout, and latency climbed to 44s. Raised P to 3; batch series into one request | Open |
 | R3 | A holiday shifts the release, and the scorer or deadline logic breaks | 3 | 2 | Calendar logic never assumes Wednesday; the scorer polls until data appears; holiday cases are tested. Rule reproduces all six published 2026 exceptions; the published table overrides the rule | Mitigated |
 | R4 | Look-ahead leakage inflates the backtest | 2 | 3 | One `as_of` path for building features, plus leakage tests in CI. Six leakage tests, all shown to fail when the release filter is removed | Mitigated |

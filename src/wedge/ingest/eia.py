@@ -35,7 +35,10 @@ def fetch_weekly(
 ) -> Pull:
     """Fetch weekly values for all series in one batched request, following pagination."""
     series_ids = list(series_ids)
-    key = api_key or config.eia_api_key()
+    try:
+        key = api_key or config.eia_api_key()
+    except RuntimeError as exc:  # a missing key should fall back to XLS, not crash the job
+        raise EIAError(str(exc)) from None
     url = f"{config.EIA_API_BASE}/{config.EIA_WEEKLY_ROUTE}/data/"
     own_client = client is None
     client = client or httpx.Client(timeout=config.HTTP_TIMEOUT_S)

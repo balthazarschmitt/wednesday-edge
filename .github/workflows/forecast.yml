@@ -1,0 +1,53 @@
+name: Forecast
+
+# Redundant, staggered runs; the job is idempotent, so only the first success writes.
+# GitHub cron is UTC and best-effort (runs can be delayed), hence several attempts.
+on:
+  schedule:
+    - cron: "47 21 * * 2" # Tue 17:47 EDT / 16:47 EST, after the API print (16:30 ET)
+    - cron: "47 23 * * 2" # Tue 19:47 EDT / 18:47 EST
+    - cron: "47 2 * * 3" # Tue 22:47 EDT / 21:47 EST
+    - cron: "17 12 * * 3" # Wed 08:17 EDT / 07:17 EST, last resort before the 10:15 deadline
+    - cron: "17 13 * * 4" # Thu 09:17 EDT, holiday weeks (release Thu 12:00); else exits early
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Compute and print only; write nothing"
+        type: boolean
+        default: true
+
+concurrency:
+  group: ledger # forecast and score jobs never push at the same time
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  WEDGE_SHADOW: ${{ vars.WEDGE_LIVE == 'true' && '0' || '1' }} # shadow until launch
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - run: uv run wedge rebuild-db
+      - name: Forecast
+        env:
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+        run: uv run wedge forecast ${{ inputs.dry_run && '--dry-run' || '' }}
+      - name: Commit ledger and data vintage
+        if: ${{ !inputs.dry_run && (success() || failure()) }} # a missed record must be committed too
+        run: |
+          git config user.name "wedge-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ledger data/raw
+          if git diff --cached --quiet; then echo "Nothing to commit"; exit 0; fi
+          git commit -m "Ledger: forecast run $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase --quiet
+          git push

@@ -93,6 +93,115 @@ def backtest(
     typer.echo(f"Report: {path.relative_to(config.REPO_ROOT)}")
 
 
+SHADOW_OPTION = typer.Option(
+    True, "--shadow/--live", envvar="WEDGE_SHADOW", help="Write to ledger/shadow (pre-launch)."
+)
+
+
+@app.command()
+def forecast(
+    shadow: bool = SHADOW_OPTION,
+    dry_run: bool = typer.Option(False, "--dry-run", help="Compute and print; write nothing."),
+    no_ingest: bool = typer.Option(False, "--no-ingest", help="Use stored data only."),
+) -> None:
+    """Forecast the next unreleased week and append it to the ledger (idempotent)."""
+    import json
+
+    from wedge import forecast as fc
+
+    outcome = fc.run(shadow=shadow, dry_run=dry_run, do_ingest=not no_ingest)
+    typer.echo(f"[{outcome.status}] week ending {outcome.target}: {outcome.message}")
+    if outcome.entry and dry_run:
+        typer.echo(
+            json.dumps({k: outcome.entry[k] for k in ("forecast", "shadow", "data")}, indent=2)
+        )
+    if outcome.status == "missed":
+        raise typer.Exit(1)  # a missed week should be loud: GitHub emails on failure
+
+
+@app.command()
+def score(shadow: bool = SHADOW_OPTION) -> None:
+    """Score every forecast whose actual EIA has published; record missed weeks."""
+    from wedge import score as sc
+
+    results = sc.run(shadow=shadow)
+    for r in results:
+        typer.echo(f"[{r.status}] week ending {r.target}: {r.path.name}")
+    if not results:
+        typer.echo("Nothing new to score.")
+
+
+log_app = typer.Typer(help="Log the API print or analyst consensus (values in million barrels).")
+app.add_typer(log_app, name="log")
+
+
+def _week(week: str | None):
+    from datetime import date
+
+    return date.fromisoformat(week) if week else None
+
+
+@log_app.command("api")
+def log_api(
+    change: float = typer.Option(..., help="API crude change, mb (e.g. -2.1 for a draw)."),
+    url: str = typer.Option(..., help="Source article URL."),
+    week: str = typer.Option(None, help="Week ending (YYYY-MM-DD); default: current target."),
+    shadow: bool = SHADOW_OPTION,
+) -> None:
+    """Log the American Petroleum Institute's weekly crude print."""
+    from wedge import forecast as fc
+    from wedge import ledger, manual
+
+    path = manual.log_api(ledger.root(shadow), change, url, fc.utc_now(), _week(week))
+    typer.echo(f"Logged {path.relative_to(config.REPO_ROOT)}")
+
+
+@log_app.command("consensus")
+def log_consensus(
+    change: float = typer.Option(..., help="Consensus crude change, mb."),
+    source: str = typer.Option(..., help='Poll name, e.g. "S&P Global poll".'),
+    url: str = typer.Option(..., help="Source article URL."),
+    week: str = typer.Option(None, help="Week ending (YYYY-MM-DD); default: current target."),
+    shadow: bool = SHADOW_OPTION,
+) -> None:
+    """Log an analyst consensus forecast."""
+    from wedge import forecast as fc
+    from wedge import ledger, manual
+
+    path = manual.log_consensus(ledger.root(shadow), change, source, url, fc.utc_now(), _week(week))
+    typer.echo(f"Logged {path.relative_to(config.REPO_ROOT)}")
+
+
+@app.command()
+def override(
+    change: float = typer.Option(..., help="Your forecast, mb."),
+    reason: str = typer.Option(..., help="Why you disagree with the model."),
+    shadow: bool = SHADOW_OPTION,
+) -> None:
+    """Log a human override for the current week (before the deadline; scored separately)."""
+    from wedge import forecast as fc
+    from wedge import ledger, manual
+
+    path = manual.log_override(ledger.root(shadow), change, reason, fc.utc_now())
+    typer.echo(f"Logged {path.relative_to(config.REPO_ROOT)}")
+
+
+@app.command("ledger-check")
+def ledger_check(
+    base: str = typer.Option(None, help="Base commit (default: empty tree = whole history)."),
+    head: str = typer.Option("HEAD", help="Head commit."),
+) -> None:
+    """Fail if any ledger file was modified or deleted, or a new entry breaks the rules."""
+    from wedge import ledger
+
+    problems = ledger.integrity_violations(base, head)
+    for p in problems:
+        typer.secho(p, fg=typer.colors.RED, err=True)
+    if problems:
+        raise typer.Exit(1)
+    typer.echo("Ledger integrity OK")
+
+
 @app.command()
 def status() -> None:
     """Show per-series coverage in the local database."""

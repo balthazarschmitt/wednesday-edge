@@ -95,6 +95,18 @@ def deadline(period_end: date) -> datetime:
     return release_time(period_end) - DEADLINE_MARGIN
 
 
+WINDOW_OPENS = time(12, 0)
+
+
+def window_opens(period_end: date) -> datetime:
+    """Earliest time the live job forecasts `period_end`: Tuesday noon ET after the period.
+
+    Without this, a Thursday run in a normal week would forecast the *next* week days early.
+    """
+    _require_friday(period_end)
+    return datetime.combine(period_end + timedelta(days=4), WINDOW_OPENS, tzinfo=ET)
+
+
 class DeadlineMissed(RuntimeError):
     """A forecast was attempted after its deadline; the week must be recorded as missed."""
 

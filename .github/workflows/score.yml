@@ -1,0 +1,46 @@
+name: Score
+
+# Polls after each likely release time; exits quietly until EIA publishes the week.
+on:
+  schedule:
+    - cron: "45 15 * * 3" # Wed 11:45 EDT / 10:45 EST (release 10:30 ET)
+    - cron: "45 18 * * 3" # Wed afternoon retry
+    - cron: "45 17 * * 4" # Thu 13:45 EDT / 12:45 EST (holiday release 12:00 ET)
+    - cron: "45 20 * * 4" # Thu retry
+    - cron: "45 14 * * 5" # Fri catch-up
+  workflow_dispatch:
+
+concurrency:
+  group: ledger
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+env:
+  WEDGE_SHADOW: ${{ vars.WEDGE_LIVE == 'true' && '0' || '1' }}
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.13"
+      - run: uv sync --locked
+      - run: uv run wedge rebuild-db
+      - name: Score
+        env:
+          EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+        run: uv run wedge score
+      - name: Commit scores and data vintage
+        run: |
+          git config user.name "wedge-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ledger data/raw
+          if git diff --cached --quiet; then echo "Nothing to commit"; exit 0; fi
+          git commit -m "Ledger: score run $(date -u +%Y-%m-%dT%H:%MZ)"
+          git pull --rebase --quiet
+          git push

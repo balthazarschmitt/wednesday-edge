@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the ledger check diffs against the previous commit
       - uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
@@ -17,3 +19,5 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run pytest -q
+      - name: Ledger integrity (append-only)
+        run: uv run wedge ledger-check --base "${{ github.event.pull_request.base.sha || github.event.before }}" --head "${{ github.sha }}"
