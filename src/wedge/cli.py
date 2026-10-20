@@ -57,6 +57,34 @@ def rebuild_db() -> None:
 
 
 @app.command()
+def backtest(
+    start: int = typer.Option(2015, help="First test year."),
+    end: int = typer.Option(2025, help="Last test year."),
+    models: str = typer.Option("baselines", help="Model set: baselines."),
+) -> None:
+    """Walk-forward backtest; writes reports/backtest/<models>.md and predictions CSV."""
+    from datetime import date
+
+    from wedge import backtest as bt
+    from wedge import features, store
+    from wedge.models.baselines import BASELINES
+
+    model_sets = {"baselines": BASELINES}
+    if models not in model_sets:
+        raise typer.BadParameter(f"unknown model set {models!r}; choose from {list(model_sets)}")
+    con = store.connect()
+    try:
+        wide = features.load_wide(con, vintage="latest")
+    finally:
+        con.close()
+    first, last = date(start, 1, 1), date(end, 12, 31)
+    result = bt.run(wide, first, last, model_sets[models])
+    path = bt.write_report(result, models, first, last, f"Backtest: {models}, {start}-{end}")
+    typer.echo(bt._fmt(result.summary()).to_string())
+    typer.echo(f"Report: {path.relative_to(config.REPO_ROOT)}")
+
+
+@app.command()
 def status() -> None:
     """Show per-series coverage in the local database."""
     from wedge import store
