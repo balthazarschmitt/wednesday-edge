@@ -145,7 +145,8 @@ def render_markdown(result: BacktestResult, start: date, end: date, title: str) 
 def write_report(result: BacktestResult, name: str, start: date, end: date, title: str) -> Path:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     md = REPORT_DIR / f"{name}.md"
-    md.write_text(render_markdown(result, start, end, title), encoding="utf-8")
+    md.write_text(render_markdown(result, start, end, title), encoding="utf-8", newline="
+")
     preds = pd.concat(result.predictions, names=["model"]).reset_index()
     preds = preds.merge(result.actuals.reset_index().rename(columns={"index": "target"}))
     preds.round({c: 1 for c in PRED_COLUMNS if c != "p_build"} | {"p_build": 4}).to_csv(
