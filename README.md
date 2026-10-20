@@ -2,7 +2,7 @@
 
 Every week, before the U.S. Energy Information Administration (EIA) releases its Weekly Petroleum Status Report, this project publishes a forecast of the weekly change in U.S. commercial crude oil inventories. Each forecast is committed to this repository with a timestamp. Once EIA publishes the actual number, the forecast is scored automatically against it, against naive baselines, and against the analyst consensus.
 
-> **Status:** under construction (Phases 0–4 of 0–9 complete: data, calendar, point-in-time features, baseline backtest; see `reports/backtest/`). The public track record starts at launch, targeted for early December 2026.
+> **Status:** under construction (Phases 0–5 of 0–9 complete. The launch model, `flows`, beat every naive baseline in a pre-registered 2022–2025 backtest; see `reports/backtest/all.md` and `pm/adr/0006-model-selection.md`). The public track record starts at launch, targeted for early December 2026.
 
 ## The rules
 
