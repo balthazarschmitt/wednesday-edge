@@ -12,3 +12,4 @@
 | 7 | Static site on GitHub Pages | 2026-11-18 | 2026-10-20 | Rebuilt from committed data on every push, forecast and score run |
 | 8 | Shadow mode (2 weekly cycles) | 2026-11-17 to 2026-12-02 | | Cycle 1 (wk ending Oct 16): forecast committed Tue 20:10 ET, 14 h before the deadline; scored by manual dispatch after the Wed score crons failed to start. Forecast +0.4 mb vs actual −3.1 mb (in 80% range, wrong direction). Extra crons added |
 | 9 | Public launch | 2026-12-08 | | First public forecast |
+| 10+ | Expansion (each addition gets an ADR and a model version) | after launch | | 2026-10-21: satellite tank-shadow feasibility at Cushing done early (ADR 0008): signal visible Oct–Mar, weak with crude method; full study proposed |
