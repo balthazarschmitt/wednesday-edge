@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "target_period": "2026-10-16",
+  "commodity": "crude",
+  "actual_kb": -3060.0,
+  "scored_at": "2026-10-21T18:30:33Z",
+  "forecast_status": "forecast",
+  "model": {
+    "name": "flows",
+    "version": "flows-v1",
+    "git_sha": "f018cb36c127b35f06d98f0de31d4a36dae43101"
+  },
+  "primary": {
+    "point": 408.0,
+    "error": -3468.0,
+    "abs_error": 3468.0,
+    "direction_hit": false,
+    "in_80": true,
+    "brier": 0.2763
+  },
+  "shadow": {
+    "gbm": {
+      "point": 749.1,
+      "error": -3809.1,
+      "abs_error": 3809.1,
+      "direction_hit": false,
+      "in_80": true,
+      "brier": 0.293
+    },
+    "ensemble": {
+      "point": 578.6,
+      "error": -3638.6,
+      "abs_error": 3638.6,
+      "direction_hit": false,
+      "in_80": true,
+      "brier": 0.2846
+    },
+    "zero": {
+      "point": 0.0,
+      "error": -3060.0,
+      "abs_error": 3060.0,
+      "direction_hit": true,
+      "in_80": true,
+      "brier": 0.2436
+    },
+    "last_week": {
+      "point": -8557.0,
+      "error": 5497.0,
+      "abs_error": 5497.0,
+      "direction_hit": true,
+      "in_80": true,
+      "brier": 0.0069
+    },
+    "seasonal_5y": {
+      "point": -426.8,
+      "error": -2633.2,
+      "abs_error": 2633.2,
+      "direction_hit": true,
+      "in_80": true,
+      "brier": 0.2071
+    }
+  },
+  "status": "scored",
+  "benchmarks": {}
+}
