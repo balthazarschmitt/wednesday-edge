@@ -4,7 +4,9 @@ name: Score
 on:
   schedule:
     - cron: "45 15 * * 3" # Wed 11:45 EDT / 10:45 EST (release 10:30 ET)
+    - cron: "17 17 * * 3" # Wed retry (cycle 1: the 15:45 run had not started 3 h later)
     - cron: "45 18 * * 3" # Wed afternoon retry
+    - cron: "17 21 * * 3" # Wed evening retry
     - cron: "45 17 * * 4" # Thu 13:45 EDT / 12:45 EST (holiday release 12:00 ET)
     - cron: "45 20 * * 4" # Thu retry
     - cron: "45 14 * * 5" # Fri catch-up

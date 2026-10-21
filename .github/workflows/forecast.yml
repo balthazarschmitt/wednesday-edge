@@ -4,6 +4,10 @@ name: Forecast
 # GitHub cron is UTC and best-effort (runs can be delayed), hence several attempts.
 on:
   schedule:
+    # Cycle 1 (Oct 20): the 21:47 run never started and the others ran 20 min to 5 h late,
+    # so the first attempt now comes right after the window opens. EIA data cannot change
+    # between Tue noon and the release, so an earlier run sees the same inputs.
+    - cron: "17 17 * * 2" # Tue 13:17 EDT / 12:17 EST, just after the window opens (12:00 ET)
     - cron: "47 21 * * 2" # Tue 17:47 EDT / 16:47 EST, after the API print (16:30 ET)
     - cron: "47 23 * * 2" # Tue 19:47 EDT / 18:47 EST
     - cron: "47 2 * * 3" # Tue 22:47 EDT / 21:47 EST
