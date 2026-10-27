@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "target_period": "2026-10-23",
+  "commodity": "crude",
+  "status": "forecast",
+  "unit": "thousand barrels (weekly change in US commercial crude stocks)",
+  "created_at": "2026-10-27T21:17:11Z",
+  "deadline": "2026-10-28T14:15:00Z",
+  "release_time": "2026-10-28T14:30:00Z",
+  "model": {
+    "name": "flows",
+    "version": "flows-v1",
+    "git_sha": "2451633299b323704b7c194f7b7b22f64792071d"
+  },
+  "forecast": {
+    "point": -426.5,
+    "p10": -5205.9,
+    "p50": -769.8,
+    "p90": 4441.1,
+    "p_build": 0.4167
+  },
+  "shadow": {
+    "gbm": {
+      "point": -1854.2,
+      "p10": -6441.2,
+      "p50": -1854.2,
+      "p90": 3895.4,
+      "p_build": 0.3465
+    },
+    "ensemble": {
+      "point": -1140.4,
+      "p10": -5823.6,
+      "p50": -1312.0,
+      "p90": 4168.2,
+      "p_build": 0.3816
+    },
+    "zero": {
+      "point": 0.0,
+      "p10": -6161.0,
+      "p50": -561.0,
+      "p90": 5665.0,
+      "p_build": 0.4872
+    },
+    "last_week": {
+      "point": -3060.0,
+      "p10": -11140.0,
+      "p50": -2932.0,
+      "p90": 4384.0,
+      "p_build": 0.2949
+    },
+    "seasonal_5y": {
+      "point": 171.0,
+      "p10": -6031.6,
+      "p50": 111.1,
+      "p90": 5757.3,
+      "p_build": 0.5128
+    }
+  },
+  "data": {
+    "as_of": "2026-10-27T21:17:02Z",
+    "last_period": "2026-10-16",
+    "weeks_stale": 0.0,
+    "last_fetch_utc": "2026-10-21 18:30:33",
+    "ingest_error": null,
+    "train_weeks": 1659,
+    "input_sha256": "91112640b8140c35e2f4e217075dfd53600e3d596a54297468bce7878a5bcbda"
+  },
+  "features": {
+    "d_stocks_lag1": -3060.0,
+    "d_stocks_lag2": -8557.0,
+    "d_stocks_lag3": -3186.0,
+    "d_stocks_lag4": 922.0,
+    "implied_lag1": -7448.0,
+    "implied_mean4": -5461.75,
+    "spr_chg1": -300.0,
+    "spr_chg_mean4": -467.25,
+    "residual_lag1": 4388.0,
+    "residual_mean4": 1991.5,
+    "residual_mean13": 5239.385,
+    "production_lag1": 13269.0,
+    "production_chg1": -410.0,
+    "production_mean4": 13720.5,
+    "imports_commercial_lag1": 5758.0,
+    "imports_commercial_chg1": -291.0,
+    "imports_commercial_mean4": 6086.25,
+    "exports_lag1": 3442.0,
+    "exports_chg1": -1128.0,
+    "exports_mean4": 4086.75,
+    "refinery_input_lag1": 16649.0,
+    "refinery_input_chg1": 34.0,
+    "refinery_input_mean4": 16500.25,
+    "utilization_lag1": 93.4,
+    "utilization_chg4": -0.6,
+    "stocks_lag1": 412517.0,
+    "stocks_vs_5y": -13982.4,
+    "cushing_lag1": 27594.0,
+    "seasonal_5y": 171.0,
+    "week_of_year": 43.0,
+    "hurricane_season": 1.0,
+    "holiday_in_week": 0.0,
+    "release_shifted": 0.0,
+    "weeks_stale": 0.0
+  }
+}
